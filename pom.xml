@@ -8,6 +8,52 @@
   <artifactId>nullsafe</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <name>XJC nullsafe plugin</name>
+  <description>A plugin for XJC to allow for the generation of Optional-types getters.</description>
+  <inceptionYear>2018</inceptionYear>
+  <url>http://rafael.codes</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>raphw</id>
+      <name>Rafael Winterhalter</name>
+      <email>rafael.wth@gmail.com</email>
+      <url>http://rafael.codes</url>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <issueManagement>
+    <system>github.com</system>
+    <url>https://github.com/raphw/modulemaker-maven-plugin/issues</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:git@github.com:raphw/xjcoptional.git</connection>
+    <developerConnection>scm:git:git@github.com:raphw/xjcoptional.git</developerConnection>
+    <url>git@github.com:raphw/xjcoptional.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/raphw/maven/xjcoptional</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
@@ -19,6 +65,7 @@
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-xjc</artifactId>
       <version>2.3.1</version>
+      <scope>provided</scope>
     </dependency>
 
   </dependencies>
