@@ -1,17 +1,6 @@
 package codes.rafael.xjcoptional;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.xml.sax.ErrorHandler;
-
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -19,6 +8,11 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSParticle;
+import org.xml.sax.ErrorHandler;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OptionalGettersPlugin extends Plugin {
 
@@ -36,6 +30,9 @@ public class OptionalGettersPlugin extends Plugin {
         JInvocation ofNullable = optional.staticInvoke("ofNullable");
         for (ClassOutline classOutline : outline.getClasses()) {
             for (FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
+                if (fieldOutline.getRawType().binaryName().equals("javax.xml.bind.JAXBElement")) {
+                    continue;
+                }
                 XSComponent component = fieldOutline.getPropertyInfo().getSchemaComponent();
                 if (component instanceof XSParticle) {
                     XSParticle pt = (XSParticle) component;
