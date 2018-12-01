@@ -19,6 +19,10 @@ Example use in Maven when building with the *maven-jaxb2-plugin*:
         </execution>
       </executions>
       <configuration>
+			  <extension>true</extension>
+				<args>
+				  <arg>-Xnullsafegetters</arg>
+        </args>
         <plugins>
           <plugin>
             <groupId>codes.rafael.xjc</groupId>
