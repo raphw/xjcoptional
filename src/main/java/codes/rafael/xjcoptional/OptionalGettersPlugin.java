@@ -27,7 +27,6 @@ public class OptionalGettersPlugin extends Plugin {
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) {
         JCodeModel codeModel = outline.getCodeModel();
         JClass optional = codeModel.ref("java.util.Optional");
-        JInvocation ofNullable = optional.staticInvoke("ofNullable");
         for (ClassOutline classOutline : outline.getClasses()) {
             for (FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
                 if (fieldOutline.getRawType().binaryName().equals("javax.xml.bind.JAXBElement")) {
@@ -38,13 +37,13 @@ public class OptionalGettersPlugin extends Plugin {
                     XSParticle pt = (XSParticle) component;
                     if (pt.getMinOccurs().equals(BigInteger.ZERO) && pt.getMaxOccurs().equals(BigInteger.ONE)) {
                         String getter = "get" + fieldOutline.getPropertyInfo().getName(true);
-                        JMethod existing = classOutline.implClass.getMethod(getter, new JType[0]);
+                        JMethod existing = classOutline.getImplClass().getMethod(getter, new JType[0]);
                         if (existing != null) {
-                            List<JMethod> methods = new ArrayList<JMethod>(classOutline.implClass.methods());
-                            classOutline.implClass.methods().clear(); // To restore original method order after.
+                            List<JMethod> methods = new ArrayList<JMethod>(classOutline.getImplClass().methods());
+                            classOutline.getImplClass().methods().clear(); // To restore original method order after.
                             for (JMethod method : methods) {
                                 if (method == existing) {
-                                    JMethod m = classOutline.implClass.method(
+                                    JMethod m = classOutline.getImplClass().method(
                                         existing.mods().getValue(),
                                         optional.narrow(existing.type()),
                                         getter);
@@ -52,9 +51,9 @@ public class OptionalGettersPlugin extends Plugin {
                                     m.javadoc()
                                         .append("Gets the value of the " + name + " property.")
                                         .addReturn().append("The optional value of " + name + ".");
-                                    m.body()._return(ofNullable.arg(JExpr.ref(name)));
+                                    m.body()._return(optional.staticInvoke("ofNullable").arg(JExpr.ref(name)));
                                 } else {
-                                    classOutline.implClass.methods().add(method);
+                                    classOutline.getImplClass().methods().add(method);
                                 }
                             }
                         }
