@@ -6,6 +6,7 @@ import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSParticle;
 import org.xml.sax.ErrorHandler;
@@ -32,29 +33,38 @@ public class OptionalGettersPlugin extends Plugin {
                 if (fieldOutline.getRawType().binaryName().equals("javax.xml.bind.JAXBElement")) {
                     continue;
                 }
+                boolean valid = false;
                 XSComponent component = fieldOutline.getPropertyInfo().getSchemaComponent();
                 if (component instanceof XSParticle) {
                     XSParticle pt = (XSParticle) component;
                     if (pt.getMinOccurs().equals(BigInteger.ZERO) && pt.getMaxOccurs().equals(BigInteger.ONE)) {
-                        String getter = "get" + fieldOutline.getPropertyInfo().getName(true);
-                        JMethod existing = classOutline.getImplClass().getMethod(getter, new JType[0]);
-                        if (existing != null) {
-                            List<JMethod> methods = new ArrayList<JMethod>(classOutline.getImplClass().methods());
-                            classOutline.getImplClass().methods().clear(); // To restore original method order after.
-                            for (JMethod method : methods) {
-                                if (method == existing) {
-                                    JMethod m = classOutline.getImplClass().method(
+                        valid = true;
+                    }
+                } else if (component instanceof XSAttributeUse) {
+                    XSAttributeUse au = (XSAttributeUse) component;
+                    if (!au.isRequired() && au.getDefaultValue() == null && au.getFixedValue() == null) {
+                        valid = true;
+                    }
+                }
+                if (valid) {
+                    String getter = "get" + fieldOutline.getPropertyInfo().getName(true);
+                    JMethod existing = classOutline.getImplClass().getMethod(getter, new JType[0]);
+                    if (existing != null) {
+                        List<JMethod> methods = new ArrayList<JMethod>(classOutline.getImplClass().methods());
+                        classOutline.getImplClass().methods().clear(); // To restore original method order after.
+                        for (JMethod method : methods) {
+                            if (method == existing) {
+                                JMethod m = classOutline.getImplClass().method(
                                         existing.mods().getValue(),
                                         optional.narrow(existing.type()),
                                         getter);
-                                    String name = fieldOutline.getPropertyInfo().getName(false);
-                                    m.javadoc()
+                                String name = fieldOutline.getPropertyInfo().getName(false);
+                                m.javadoc()
                                         .append("Gets the value of the " + name + " property.")
                                         .addReturn().append("The optional value of " + name + ".");
-                                    m.body()._return(optional.staticInvoke("ofNullable").arg(JExpr.ref(name)));
-                                } else {
-                                    classOutline.getImplClass().methods().add(method);
-                                }
+                                m.body()._return(optional.staticInvoke("ofNullable").arg(JExpr.ref(name)));
+                            } else {
+                                classOutline.getImplClass().methods().add(method);
                             }
                         }
                     }
