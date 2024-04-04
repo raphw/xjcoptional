@@ -9,6 +9,7 @@ import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSTerm;
 import org.xml.sax.ErrorHandler;
 
 import java.math.BigInteger;
@@ -25,19 +26,31 @@ public class OptionalGettersPlugin extends Plugin {
         return "Changes getters for optional, non-repeated properties to return java.util.Optional values.";
     }
 
+    private boolean isTermElementDeclWithDefaultValue(XSParticle particle) {
+        XSTerm term = particle.getTerm();
+        return term.isElementDecl() && term.asElementDecl().getDefaultValue() != null;
+    }
+
+    private boolean isJaxbElement(FieldOutline fieldOutline) {
+        String binaryName = fieldOutline.getRawType().binaryName();
+        return "javax.xml.bind.JAXBElement".equals(binaryName)
+            || "jakarta.xml.bind.JAXBElement".equals(binaryName);
+    }
+
     public boolean run(Outline outline, Options options, ErrorHandler errorHandler) {
         JCodeModel codeModel = outline.getCodeModel();
         JClass optional = codeModel.ref("java.util.Optional");
         for (ClassOutline classOutline : outline.getClasses()) {
             for (FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
-                if (fieldOutline.getRawType().binaryName().equals("javax.xml.bind.JAXBElement")) {
+                if (isJaxbElement(fieldOutline)) {
                     continue;
                 }
                 boolean valid = false;
                 XSComponent component = fieldOutline.getPropertyInfo().getSchemaComponent();
                 if (component instanceof XSParticle) {
                     XSParticle pt = (XSParticle) component;
-                    if (pt.getMinOccurs().equals(BigInteger.ZERO) && pt.getMaxOccurs().equals(BigInteger.ONE)) {
+                    if (pt.getMinOccurs().equals(BigInteger.ZERO) && pt.getMaxOccurs().equals(BigInteger.ONE)
+                        && !isTermElementDeclWithDefaultValue(pt)) {
                         valid = true;
                     }
                 } else if (component instanceof XSAttributeUse) {
